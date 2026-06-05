@@ -13,15 +13,13 @@ LABEL org.opencontainers.image.title="quill"
 LABEL org.opencontainers.image.description="Canonical pandoc tooling for typeset research docs"
 LABEL org.opencontainers.image.source="https://github.com/DarkbyteAT/quill"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.version="0.1.0"
+LABEL org.opencontainers.image.version="0.2.4"
 
-# Fonts. EB Garamond (serif), Source Code Pro (mono), Inter (sans).
-# fontconfig is already present in the base image; rebuild the cache after.
-RUN apk add --no-cache \
-      font-eb-garamond \
-      font-adobe-source-code-pro \
-      font-inter \
- && fc-cache -f
+# Fonts are intentionally NOT customised. xelatex's default — Latin Modern,
+# the modern enhanced Computer Modern with full Unicode coverage — is the
+# iconic typeset-academic look. Users who want different fonts install them
+# in their own downstream image (or on the host) and override via their own
+# `--defaults` YAML.
 
 # TeX packages beyond the base pandoc/latex install. The base already covers
 # xelatex/lualatex/biber + a handful of common packages (microtype, booktabs,

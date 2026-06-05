@@ -118,17 +118,7 @@ The hash is over inputs that actually affect the rendered output. Editing `READM
 
 Default fonts are **Latin Modern** — the modern enhanced Computer Modern with full Unicode coverage, set automatically by xelatex when no `mainfont` is specified. This is the iconic typeset-academic look that readers familiar with LaTeX papers expect.
 
-Override via `mainfont`/`monofont`/`sansfont` in your own `--defaults` YAML, or pass them inline as `-V mainfont="EB Garamond"`. **EB Garamond**, **Source Code Pro**, and **Inter** are pre-installed in the image for convenience — they're a few MB total and let you opt in to the v0.1.0 typography without bundling extra font packages:
-
-```bash
-quill --to=pdf \
-  -V mainfont="EB Garamond" \
-  -V monofont="Source Code Pro" \
-  -V sansfont="Inter" \
-  < paper.md > paper.pdf
-```
-
-The pre-installed fonts are open-source, sourced from the Alpine package repos, and render identically on every install of the image.
+quill's image carries only what ships with the `pandoc/latex` base plus Latin Modern. Users who want custom fonts install them in a downstream image (or on the host) and override via `mainfont`/`monofont`/`sansfont` in their own `--defaults` YAML — font packaging is out of scope for quill itself.
 
 ### Why stdin/stdout
 
