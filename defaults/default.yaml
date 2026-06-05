@@ -1,0 +1,44 @@
+# Opinionated pandoc defaults for typeset research docs.
+# Override any field by passing your own --defaults file at invocation time.
+
+from: markdown
+to: pdf
+
+pdf-engine: xelatex
+
+standalone: true
+table-of-contents: true
+toc-depth: 3
+number-sections: true
+
+# Tango is a high-contrast, accessible syntax theme that prints well in B/W.
+highlight-style: tango
+
+variables:
+  documentclass: article
+  papersize: a4
+  fontsize: 11pt
+  geometry:
+    - margin=1in
+  linestretch: 1.15
+
+  # Typography. EB Garamond (serif), Source Code Pro (mono), Inter (sans).
+  # These are installed in the quill image via Alpine packages.
+  mainfont: "EB Garamond"
+  sansfont: "Inter"
+  monofont: "Source Code Pro"
+  monofontoptions:
+    - Scale=0.85
+
+  # Hyperref styling. colorlinks keeps clickable references visible without
+  # the default boxed-link aesthetic.
+  colorlinks: true
+  linkcolor: "RoyalBlue"
+  urlcolor: "RoyalBlue"
+  citecolor: "ForestGreen"
+  toccolor: "black"
+
+  # Paragraph spacing — research docs are usually nicer with vertical gaps
+  # than with first-line indents.
+  indent: false
+  parskip: "0.5em plus 0.1em minus 0.05em"

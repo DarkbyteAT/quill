@@ -1,0 +1,57 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Cache the docker build layers across runs. The image tag is derived
+      # from a hash of Dockerfile + defaults + templates inside render.sh,
+      # but the build context itself benefits from layer caching too.
+      - name: Cache docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('Dockerfile', 'defaults/**', 'templates/**') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # Pre-build via buildx so we get the cache mounts; render.sh will then
+      # see the image already present (via the tag it computes) and skip
+      # building during the smoke test itself.
+      # Pre-warm the image with buildx so the cache mounts are populated.
+      # render.sh computes its own tag from a hash of Dockerfile + defaults
+      # + templates and skips building when an image with that tag already
+      # exists, so the smoke test below reuses what we built here.
+      - name: Build image
+        run: |
+          set -euo pipefail
+          HASH="$( { cat Dockerfile; find defaults templates -type f \
+                       \( -name '*.yaml' -o -name '*.yml' \
+                          -o -name '*.tex' -o -name '*.latex' \
+                          -o -name '*.html' \) -print0 \
+                       | sort -z | xargs -0 cat; } \
+                   | shasum -a 256 | cut -c1-12 )"
+          docker buildx build \
+            --tag "quill:${HASH}" \
+            --tag quill:latest \
+            --cache-from type=local,src=/tmp/.buildx-cache \
+            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            --load \
+            .
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Run smoke test
+        run: ./tests/smoke.sh

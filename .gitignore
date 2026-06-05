@@ -1,0 +1,16 @@
+# Render artefacts
+*.pdf
+*.html
+*.docx
+*.epub
+
+# Build artefacts
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+.claude/settings.local.json
