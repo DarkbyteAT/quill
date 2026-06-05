@@ -129,6 +129,17 @@ if [[ "${user_supplied_defaults}" -eq 0 ]]; then
   pandoc_args=(--defaults=/opt/quill/defaults/default.yaml "${pandoc_args[@]}")
 fi
 
+# Disable the GHC runtime timer ticker. Without a host TTY (i.e. when quill is
+# invoked from a pipe or redirected input — the canonical Unix-filter use),
+# the runtime's poll() on the timer hits EINTR every iteration and pandoc
+# spams `Ticker: poll failed: Interrupted system call` on stderr ~4-5 times
+# per render. `+RTS -V0 -RTS` turns the RTS timer off entirely; pandoc waits
+# on its xelatex child process via the standard kernel mechanism and doesn't
+# need GHC's tick timer for that, so disabling it is functionally a no-op
+# except for the silenced noise. The flag block is consumed by the GHC RTS
+# before pandoc's arg parser sees argv, so it doesn't interfere with pandoc.
+pandoc_args=("+RTS" "-V0" "-RTS" "${pandoc_args[@]}")
+
 # Resolve the output path against host CWD if one was given, mount its parent
 # directory into the container at /quill-out, and forward `-o` to pandoc
 # pointing at the in-container basename. Relative paths resolve against host
