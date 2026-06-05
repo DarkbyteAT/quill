@@ -6,15 +6,34 @@ quill is infrastructure — every research-doc render in any sibling repo eventu
 
 ## Install
 
+### Recommended: Homebrew
+
 ```bash
-git clone https://github.com/DarkbyteAT/quill
-cd quill
-./render.sh --version          # forwards to `pandoc --version` inside the container
+brew tap DarkbyteAT/quill https://github.com/DarkbyteAT/quill
+brew install darkbyteat/quill/quill
 ```
 
-The first invocation builds the image (a few minutes). Subsequent invocations reuse it — see [Design rationale](#design-rationale) for how the idempotent build works.
+This installs `quill` to your `PATH` and bundles the Dockerfile, defaults, and templates under `$(brew --prefix)/opt/quill/libexec`. Docker is declared as a dependency, so brew will surface it if missing.
 
-If you want `quill` available on `PATH`, symlink `render.sh`:
+```bash
+quill --version                # forwards to `pandoc --version` inside the container
+cat paper.md | quill --to=pdf > paper.pdf
+```
+
+The first render builds the docker image (a few minutes). Subsequent invocations reuse it — see [Design rationale](#design-rationale) for how the idempotent build works.
+
+The two-argument `brew tap` form is required because Homebrew 5.x no longer accepts local-file formula installs, and quill ships its formula in the main repo rather than a separate `homebrew-quill` tap.
+
+### Alternative: direct script invocation
+
+If you'd rather skip brew, `render.sh` works standalone from a clone:
+
+```bash
+git clone https://github.com/DarkbyteAT/quill
+cat paper.md | ./quill/render.sh --to=pdf > paper.pdf
+```
+
+To get `quill` on `PATH` without brew, symlink `render.sh` — the script resolves its own location through symlinks, so it still finds the bundled Dockerfile, defaults, and templates:
 
 ```bash
 ln -s "$(pwd)/render.sh" ~/.local/bin/quill

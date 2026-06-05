@@ -14,10 +14,22 @@
 
 set -euo pipefail
 
-# Resolve the script's own directory so render.sh works from anywhere and
-# still finds the Dockerfile / defaults / templates that determine the image
-# tag.
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+# Resolve the script's own directory through any symlinks (e.g. a Homebrew
+# bin shim, a user `ln -s` onto PATH) so render.sh finds the Dockerfile /
+# defaults / templates that live next to the real file. macOS ships a
+# `readlink` without `-f`; walk the symlink chain by hand so we don't depend
+# on coreutils.
+resolve_script_path() {
+  local src="${BASH_SOURCE[0]}"
+  while [[ -L "${src}" ]]; do
+    local dir
+    dir="$(cd -P -- "$(dirname -- "${src}")" &>/dev/null && pwd)"
+    src="$(readlink -- "${src}")"
+    [[ "${src}" != /* ]] && src="${dir}/${src}"
+  done
+  cd -P -- "$(dirname -- "${src}")" &>/dev/null && pwd
+}
+SCRIPT_DIR="$(resolve_script_path)"
 
 # Image-tag hash: any change to the Dockerfile, defaults, or templates yields
 # a new tag, so the next invocation rebuilds. Unchanged inputs reuse the
