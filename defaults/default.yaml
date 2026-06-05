@@ -22,13 +22,11 @@ variables:
     - margin=1in
   linestretch: 1.15
 
-  # Typography. EB Garamond (serif), Source Code Pro (mono), Inter (sans).
-  # These are installed in the quill image via Alpine packages.
-  mainfont: "EB Garamond"
-  sansfont: "Inter"
-  monofont: "Source Code Pro"
-  monofontoptions:
-    - Scale=0.85
+  # Typography is intentionally left to xelatex's default — Latin Modern, the
+  # modern enhanced Computer Modern with full Unicode coverage. This is what
+  # readers familiar with typeset academic docs expect. EB Garamond, Source
+  # Code Pro, and Inter remain installed in the image as opt-ins; override
+  # via your own --defaults or pass `-V mainfont="EB Garamond"` etc.
 
   # Hyperref styling. colorlinks keeps clickable references visible without
   # the default boxed-link aesthetic.

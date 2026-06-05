@@ -1,9 +1,9 @@
 class Quill < Formula
   desc "Canonical pandoc tooling for typeset research docs"
   homepage "https://github.com/DarkbyteAT/quill"
-  url "https://github.com/DarkbyteAT/quill/archive/refs/tags/v0.2.2.tar.gz"
-  sha256 "c863b0d9a69bd5aa769c3ccd10d050cc8007209b085958870e7ea61a3049f115"
-  version "0.2.2"
+  url "https://github.com/DarkbyteAT/quill/archive/refs/tags/v0.2.3.tar.gz"
+  sha256 "PLACEHOLDER_FILL_AFTER_TAG_PUSH"
+  version "0.2.3"
   license "MIT"
   head "https://github.com/DarkbyteAT/quill.git", branch: "main"
 

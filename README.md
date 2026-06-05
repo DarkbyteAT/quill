@@ -92,10 +92,8 @@ quill -e MY_VAR=value --to=pdf < paper.md > paper.pdf
 
 | Choice | Value | Why |
 |---|---|---|
-| PDF engine | xelatex | Modern OpenType font support; needed for the font choices below |
-| Serif | EB Garamond | High-contrast Renaissance design, excellent for long-form reading |
-| Sans | Inter | Clean, screen-optimised; pairs well with Garamond |
-| Mono | Source Code Pro | Designed for prose-embedded code; consistent stroke weight |
+| PDF engine | xelatex | Modern OpenType font support; lets users override the default fonts with system OTFs if they want |
+| Fonts | Latin Modern (xelatex default) | The iconic typeset-academic look, set by xelatex when no `mainfont` is specified |
 | Size | 11pt, 1in margins, 1.15 line height | Comfortable reading; close to typeset journal norms |
 | Links | Coloured (RoyalBlue / ForestGreen for citations) | Visible without boxed-link aesthetic |
 | Sections | Numbered, TOC depth 3 | Research-doc default; toggle with `-V number-sections=false` |
@@ -116,11 +114,21 @@ Naive wrappers either build the image on every invocation (slow) or build it onc
 
 The hash is over inputs that actually affect the rendered output. Editing `README.md` doesn't trigger a rebuild; editing `defaults/default.yaml` does.
 
-### Why these fonts
+### Fonts
 
-EB Garamond is a digital revival of Claude Garamont's 16th-century types — high contrast, narrow proportions, designed for long-form reading. Source Code Pro was designed by Paul Hunt at Adobe specifically for embedded code in prose contexts (rather than for terminals), so it matches Garamond's weight without standing out. Inter (by Rasmus Andersson) is a clean neo-grotesque that pairs sanely with both — used for figure labels and headings if you opt for sans variants.
+Default fonts are **Latin Modern** — the modern enhanced Computer Modern with full Unicode coverage, set automatically by xelatex when no `mainfont` is specified. This is the iconic typeset-academic look that readers familiar with LaTeX papers expect.
 
-All three are open-source, available in the Alpine package repos, and render identically on every install of the image.
+Override via `mainfont`/`monofont`/`sansfont` in your own `--defaults` YAML, or pass them inline as `-V mainfont="EB Garamond"`. **EB Garamond**, **Source Code Pro**, and **Inter** are pre-installed in the image for convenience — they're a few MB total and let you opt in to the v0.1.0 typography without bundling extra font packages:
+
+```bash
+quill --to=pdf \
+  -V mainfont="EB Garamond" \
+  -V monofont="Source Code Pro" \
+  -V sansfont="Inter" \
+  < paper.md > paper.pdf
+```
+
+The pre-installed fonts are open-source, sourced from the Alpine package repos, and render identically on every install of the image.
 
 ### Why stdin/stdout
 
