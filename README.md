@@ -118,7 +118,7 @@ The hash is over inputs that actually affect the rendered output. Editing `READM
 
 Default fonts are **Latin Modern** — the modern enhanced Computer Modern with full Unicode coverage, set automatically by xelatex when no `mainfont` is specified. This is the iconic typeset-academic look that readers familiar with LaTeX papers expect.
 
-quill's image carries only what ships with the `pandoc/latex` base plus Latin Modern. Users who want custom fonts install them in a downstream image (or on the host) and override via `mainfont`/`monofont`/`sansfont` in their own `--defaults` YAML — font packaging is out of scope for quill itself.
+quill ships only with what the base `pandoc/latex` image provides plus Latin Modern. To use a custom font, build your own image `FROM quill` (or `FROM pandoc/latex`) with the font installed via `apk` or `tlmgr`, then override via `mainfont`/`monofont`/`sansfont` in your own `--defaults` YAML. Host-installed fonts aren't visible to pandoc inside the container, so a downstream image is the right path — font packaging is out of scope for quill itself.
 
 ### Why stdin/stdout
 
