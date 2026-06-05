@@ -66,10 +66,14 @@ fi
 
 # Split out `-e VAR=val` env-passthrough flags from pandoc args. Everything
 # else is forwarded to pandoc verbatim. We also detect whether the user
-# supplied their own `--defaults` so we don't double-apply ours.
+# supplied their own `--defaults` so we don't double-apply ours, and rewrite
+# any absolute `-o`/`--output` path so the file lands on the host instead of
+# being written to a path that only exists inside the container.
 docker_env_args=()
+docker_output_mount_args=()
 pandoc_args=()
 user_supplied_defaults=0
+output_target=""
 
 while (( "$#" )); do
   case "$1" in
@@ -90,6 +94,30 @@ while (( "$#" )); do
       pandoc_args+=("$1")
       shift
       ;;
+    -o)
+      if [[ $# -lt 2 ]]; then
+        echo "quill: -o requires a path" >&2
+        exit 2
+      fi
+      output_target="$2"
+      shift 2
+      ;;
+    -o*)
+      output_target="${1#-o}"
+      shift
+      ;;
+    --output)
+      if [[ $# -lt 2 ]]; then
+        echo "quill: --output requires a path" >&2
+        exit 2
+      fi
+      output_target="$2"
+      shift 2
+      ;;
+    --output=*)
+      output_target="${1#--output=}"
+      shift
+      ;;
     *)
       pandoc_args+=("$1")
       shift
@@ -101,17 +129,46 @@ if [[ "${user_supplied_defaults}" -eq 0 ]]; then
   pandoc_args=(--defaults=/opt/quill/defaults/default.yaml "${pandoc_args[@]}")
 fi
 
+# Resolve the output path against host CWD if one was given, mount its parent
+# directory into the container at /quill-out, and forward `-o` to pandoc
+# pointing at the in-container basename. Relative paths resolve against host
+# CWD because the user types them from the host shell. Tilde expansion is
+# the shell's job and has already happened by the time we see the arg.
+#
+# This step exists because pandoc inside the container has no awareness of
+# the host filesystem outside the volume mounts — naively forwarding `-o
+# /tmp/foo.pdf` writes to /tmp inside the container, which dies with the
+# container.
+if [[ -n "${output_target}" ]]; then
+  if [[ "${output_target}" = /* ]]; then
+    output_abs="${output_target}"
+  else
+    output_abs="$(pwd)/${output_target}"
+  fi
+  output_dir="$(dirname -- "${output_abs}")"
+  output_base="$(basename -- "${output_abs}")"
+  mkdir -p -- "${output_dir}"
+  output_dir_real="$(cd -P -- "${output_dir}" && pwd)"
+  docker_output_mount_args=(--volume "${output_dir_real}:/quill-out")
+  pandoc_args+=(--output="/quill-out/${output_base}")
+fi
+
 # Mount CWD at /data so input files (bibliographies, images) and output paths
 # resolve naturally. Use `-i` (no `-t`) so stdin streams cleanly when piping.
+# `--platform=linux/amd64` pins the runtime platform to match the image
+# (`FROM --platform=linux/amd64` in the Dockerfile), silencing docker's
+# per-invocation platform-mismatch warning on Apple Silicon.
 #
 # `${arr[@]+"${arr[@]}"}` is the bash-safe empty-array expansion under
-# `set -u`: with no `-e` flags supplied, `docker_env_args` is empty and a
-# bare `"${docker_env_args[@]}"` would trip "unbound variable".
+# `set -u`: with no `-e` flags or `-o` supplied, those arrays are empty and a
+# bare `"${arr[@]}"` would trip "unbound variable".
 exec docker run \
   --rm \
   --interactive \
+  --platform=linux/amd64 \
   --volume "$(pwd):/data" \
   --workdir /data \
   ${docker_env_args[@]+"${docker_env_args[@]}"} \
+  ${docker_output_mount_args[@]+"${docker_output_mount_args[@]}"} \
   "${IMAGE_REF}" \
   ${pandoc_args[@]+"${pandoc_args[@]}"}
