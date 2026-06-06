@@ -85,16 +85,18 @@ Styling via DOT's `style` attribute carries through. For example:
 ```dot
 digraph G {
   rankdir=LR;
-  node [shape=ellipse];
-  A [style="fill=blue!20"];
-  B [style="fill=red!20"];
+  node [shape=rectangle];
+  A [style="rounded corners, fill=blue!20"];
+  B [style="rounded corners, fill=red!20"];
   A -> B [label="edge"];
   B -> C;
 }
 ```
 ````
 
-Mermaid is **not** supported; use DOT for typeset diagrams. See the [Graphviz DOT language reference](https://graphviz.org/doc/info/lang.html) for syntax, and the [dot2tex docs](https://dot2tex.readthedocs.io/) for the styling vocabulary that survives the conversion.
+**Style syntax is TikZ, not Graphviz.** quill's dot2tex integration passes `style=` and `lblstyle=` attributes through to TikZ verbatim, so the values are TikZ keys — not their Graphviz shorthand equivalents. Use `rounded corners` (TikZ), not `rounded` (Graphviz shorthand); `dashed`, `thick`, `drop shadow`, and `fill=blue!20` all work as-is. The full TikZ key reference is in the [PGF manual](https://pgf-tikz.github.io/pgf/pgfmanual.pdf). Pure-DOT attributes like `shape=`, `color=`, `fontcolor=`, and edge `dir=` are translated by dot2tex normally.
+
+Mermaid is **not** supported; use DOT for typeset diagrams. See the [Graphviz DOT language reference](https://graphviz.org/doc/info/lang.html) for the language itself, and the [dot2tex docs](https://dot2tex.readthedocs.io/) for which DOT attributes survive the conversion.
 
 ### Overriding the default style
 
