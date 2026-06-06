@@ -37,9 +37,9 @@ SCRIPT_DIR="$(resolve_script_path)"
 hash_inputs() {
   {
     cat "${SCRIPT_DIR}/Dockerfile"
-    find "${SCRIPT_DIR}/defaults" "${SCRIPT_DIR}/templates" \
+    find "${SCRIPT_DIR}/defaults" "${SCRIPT_DIR}/templates" "${SCRIPT_DIR}/filters" \
          -type f \( -name '*.yaml' -o -name '*.yml' -o -name '*.tex' \
-                    -o -name '*.latex' -o -name '*.html' \) \
+                    -o -name '*.latex' -o -name '*.html' -o -name '*.lua' \) \
          -print0 2>/dev/null \
       | sort -z \
       | xargs -0 cat 2>/dev/null || true

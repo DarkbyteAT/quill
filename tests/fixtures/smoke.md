@@ -36,10 +36,26 @@ def render(markdown: str) -> bytes:
 
 # A table
 
-| Symbol | Description | Default |
+| Defaults key | Type | Value |
 |---|---|---|
-| `mainfont` | Serif typeface | EB Garamond |
-| `monofont` | Monospace typeface | Source Code Pro |
-| `sansfont` | Sans typeface | Inter |
+| `pdf-engine` | string | `xelatex` |
+| `fontsize` | string | `11pt` |
+| `linestretch` | number | `1.15` |
+| `linkcolor` | LaTeX colour | `RoyalBlue` |
+
+# A diagram
+
+This fenced `dot` block is rewritten to a TikZ figure by the bundled `dot2tikz.lua` filter. If quill is rendering correctly, the block below appears as a styled directed graph in the PDF — not as code.
+
+```dot
+digraph G {
+  rankdir=LR;
+  node [shape=ellipse];
+  A [style="fill=blue!20"];
+  B [style="fill=red!20"];
+  A -> B [label="edge"];
+  B -> C;
+}
+```
 
 [^1]: Footnotes should render as numbered marginal notes.

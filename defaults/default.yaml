@@ -14,6 +14,15 @@ number-sections: true
 # Tango is a high-contrast, accessible syntax theme that prints well in B/W.
 highlight-style: tango
 
+# Pandoc filters baked into the image at /opt/quill/filters/.
+#
+# dot2tikz.lua intercepts fenced ```dot blocks and rewrites them to raw TikZ
+# via dot2tex (graphviz + dot2tex are installed in the image). The
+# corresponding `\usepackage{tikz}` + library imports are declared below
+# under variables.header-includes.
+filters:
+  - /opt/quill/filters/dot2tikz.lua
+
 variables:
   documentclass: article
   papersize: a4
@@ -24,9 +33,19 @@ variables:
 
   # Typography is intentionally left to xelatex's default — Latin Modern, the
   # modern enhanced Computer Modern with full Unicode coverage. This is what
-  # readers familiar with typeset academic docs expect. EB Garamond, Source
-  # Code Pro, and Inter remain installed in the image as opt-ins; override
-  # via your own --defaults or pass `-V mainfont="EB Garamond"` etc.
+  # readers familiar with typeset academic docs expect. Custom fonts are out
+  # of scope for the quill image; build a downstream image FROM quill (or
+  # pandoc/latex) with the font installed and override mainfont/etc. in your
+  # own --defaults YAML.
+
+  # TikZ preamble for the dot2tikz filter output. Loaded unconditionally so a
+  # document without any ```dot blocks still parses; the cost is one
+  # \usepackage line in the LaTeX intermediate. `shapes` covers ellipse /
+  # rectangle / circle nodes; `arrows.meta` enables the `-latex` arrow tip
+  # dot2tex emits; `positioning` is broadly useful for hand-written tikz too.
+  header-includes:
+    - "\\usepackage{tikz}"
+    - "\\usetikzlibrary{shapes,arrows.meta,positioning}"
 
   # Hyperref styling. colorlinks keeps clickable references visible without
   # the default boxed-link aesthetic.

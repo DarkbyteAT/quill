@@ -64,6 +64,38 @@ quill --to=pdf --citeproc --bibliography=refs.bib -o paper.pdf < paper.md
 
 `refs.bib` is resolved against the host CWD, which is mounted at `/data` inside the container.
 
+### Diagrams
+
+Fenced `dot` blocks are rendered as native TikZ figures in the PDF, automatically. Write:
+
+````markdown
+```dot
+digraph G {
+  rankdir=LR;
+  A -> B -> C;
+}
+```
+````
+
+…and quill's bundled `dot2tikz.lua` Lua filter passes the block through `dot2tex -ftikz`, producing a styled TikZ figure inline in the LaTeX output. The result is a typeset diagram with proper hinting, vector arrows, and Latin Modern labels — not a rendered bitmap.
+
+Styling via DOT's `style` attribute carries through. For example:
+
+````markdown
+```dot
+digraph G {
+  rankdir=LR;
+  node [shape=ellipse];
+  A [style="fill=blue!20"];
+  B [style="fill=red!20"];
+  A -> B [label="edge"];
+  B -> C;
+}
+```
+````
+
+Mermaid is **not** supported; use DOT for typeset diagrams. See the [Graphviz DOT language reference](https://graphviz.org/doc/info/lang.html) for syntax, and the [dot2tex docs](https://dot2tex.readthedocs.io/) for the styling vocabulary that survives the conversion.
+
 ### Overriding the default style
 
 quill applies `defaults/default.yaml` automatically. To replace it, pass your own `--defaults`:
@@ -99,6 +131,7 @@ quill -e MY_VAR=value --to=pdf < paper.md > paper.pdf
 | Sections | Numbered, TOC depth 3 | Research-doc default; toggle with `-V number-sections=false` |
 | Code | tango syntax theme | High contrast, prints to B/W cleanly |
 | Layout | parskip-based (no first-line indent) | Reads better on screen and in PDF than indented paragraphs |
+| Diagrams | `dot2tikz.lua` Lua filter | Fenced ```dot blocks become TikZ figures automatically (see [Diagrams](#diagrams)) |
 
 Override any of these via `--defaults` or `-V` (see above).
 
@@ -106,7 +139,7 @@ Override any of these via `--defaults` or `-V` (see above).
 
 ### Why Docker
 
-A TeX Live install is hundreds of megabytes, a moving target, and has irritating cross-platform packaging differences. Pinning everything inside an image means the rendered output is reproducible on any machine with Docker — CI, a fresh laptop, a teammate's box. The base image (`pandoc/latex`) already bundles TeX Live, so quill's image just layers fonts, a few extra TeX packages, and the defaults on top.
+A TeX Live install is hundreds of megabytes, a moving target, and has irritating cross-platform packaging differences. Pinning everything inside an image means the rendered output is reproducible on any machine with Docker — CI, a fresh laptop, a teammate's box. The base image (`pandoc/latex`) already bundles TeX Live, so quill's image just layers a few extra TeX packages, Graphviz + dot2tex for diagrams, and the defaults on top.
 
 ### Why the idempotent build
 

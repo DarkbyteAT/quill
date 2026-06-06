@@ -13,13 +13,24 @@ LABEL org.opencontainers.image.title="quill"
 LABEL org.opencontainers.image.description="Canonical pandoc tooling for typeset research docs"
 LABEL org.opencontainers.image.source="https://github.com/DarkbyteAT/quill"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.version="0.2.4"
+LABEL org.opencontainers.image.version="0.3.0"
 
 # Fonts are intentionally NOT customised. xelatex's default — Latin Modern,
 # the modern enhanced Computer Modern with full Unicode coverage — is the
 # iconic typeset-academic look. Users who want different fonts install them
 # in their own downstream image (or on the host) and override via their own
 # `--defaults` YAML.
+
+# Graphviz + dot2tex for diagrams. Fenced ```dot blocks in markdown become
+# native TikZ figures in the rendered PDF — see filters/dot2tikz.lua. The
+# Alpine `graphviz` package pulls in libgd / libavif / aom-libs (~40 MB of
+# transitive image deps); dot2tex is a small Python tool not in the apk
+# repos, so we layer python3 + py3-pip and install it from PyPI.
+# `--break-system-packages` is needed because Alpine's py3 install marks
+# the system site-packages dir as externally-managed (PEP 668); we own the
+# image, there is no other manager.
+RUN apk add --no-cache graphviz python3 py3-pip \
+ && pip install --break-system-packages --no-cache-dir dot2tex==2.12.0
 
 # TeX packages beyond the base pandoc/latex install. The base already covers
 # xelatex/lualatex/biber + a handful of common packages (microtype, booktabs,
@@ -47,12 +58,14 @@ RUN tlmgr option repository \
       newfloat \
       pgfopts
 
-# Bake the opinionated defaults and any custom templates into a stable
+# Bake the opinionated defaults, templates, and pandoc filters into a stable
 # location inside the image. render.sh mounts the user's CWD at /data and
-# invokes pandoc with --defaults pointing at this path by default.
-RUN mkdir -p /opt/quill/defaults /opt/quill/templates
+# invokes pandoc with --defaults pointing at this path by default; the
+# defaults file in turn references filters at /opt/quill/filters/.
+RUN mkdir -p /opt/quill/defaults /opt/quill/templates /opt/quill/filters
 COPY defaults/ /opt/quill/defaults/
 COPY templates/ /opt/quill/templates/
+COPY filters/ /opt/quill/filters/
 
 WORKDIR /data
 ENTRYPOINT ["pandoc"]
